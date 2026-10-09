@@ -43,3 +43,29 @@ This register records candidate sources for the CoastMind coastal-science text c
 The initial pilot corpus will be small and focused on coastal-science fundamentals. Candidate topics include coastal erosion, sediment transport, waves, tides, estuaries, and shoreline change.
 
 The final source selection and corpus size will be decided after the candidate sources have been reviewed.
+
+## Specific Pilot Documents
+
+1. What are tides?
+Topic: Tides and tidal range
+Explains the rise and fall of sea level and the difference between high and low tide.
+https://oceanservice.noaa.gov/facts/tides.html/1000
+Status: Pending item-level review
+
+2. What is an estuary?
+Topic: Estuaries and brackish water
+Introduces the mixing of freshwater and seawater and the ecological importance of estuaries.
+https://oceanservice.noaa.gov/facts/estuary.html
+Status: Pending item-level review
+
+3. What is a current?
+Topic: Ocean and tidal currents
+Describes how wind, density differences, and tides drive water movement.
+https://oceanservice.noaa.gov/facts/current.html
+Status: Pending item-level review
+
+4. What is shoreline armoring?
+Topic: Coastal erosion and sediment movement
+Explains erosion, structures such as seawalls, and possible effects on natural sediment movement.
+https://oceanservice.noaa.gov/facts/shoreline-armoring.html
+Status: Pending item-level review
