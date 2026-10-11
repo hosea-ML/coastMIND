@@ -148,3 +148,67 @@ with 32 tests passing.
 The next stage is multi-head self-attention. After that, CoastMind will
 progress toward a Transformer block with residual connections, layer
 normalization, and a feed-forward network.
+
+## 8. Multi-Head Self-Attention
+
+### Overview
+
+CoastMind extends its original single-head causal self-attention mechanism
+with a `MultiHeadSelfAttention` class.
+
+Multi-head attention computes several attention patterns in parallel.
+Each head has its own learned query, key, and value representations.
+The outputs are concatenated and passed through a learned output projection.
+
+### Implementation
+
+The implementation is located in `src/model/attention.py`.
+
+The class:
+- Validates the embedding dimension and number of heads.
+- Requires the embedding dimension to be divisible by the number of heads.
+- Projects input embeddings into queries, keys, and values.
+- Reshapes the projections into separate heads.
+- Computes scaled dot-product attention.
+- Applies a causal mask to block future-token attention.
+- Applies softmax to obtain attention weights.
+- Aggregates value vectors for each head.
+- Concatenates the head outputs and applies an output projection.
+- Optionally returns attention weights for inspection.
+
+### Tensor Dimensions
+
+For an embedding dimension of 8 and four attention heads:
+
+- Head dimension: 8 / 4 = 2
+- Input shape: `(batch_size, sequence_length, 8)`
+- Attention-weight shape: `(batch_size, 4, sequence_length, sequence_length)`
+- Output shape: `(batch_size, sequence_length, 8)`
+
+The output projection preserves the model embedding dimension.
+
+### Testing
+
+The dedicated test module is `tests/test_multihead_attention.py`.
+
+Ten tests verify:
+- Output shape.
+- Attention-weight shape.
+- Attention probability normalization.
+- Causal masking of future tokens.
+- First-token attention behaviour.
+- Finite outputs.
+- Gradient flow through model parameters.
+- Rejection of invalid embedding dimensions.
+- Rejection of invalid head counts.
+- Rejection of incompatible embedding and head dimensions.
+
+The full project test suite passed 82 tests after this implementation.
+
+### Limitations
+
+Passing unit tests establishes expected behaviour for the tested cases.
+It does not demonstrate that the model has learned useful representations
+or that different heads have developed distinct semantic roles.
+
+Those properties require training and further evaluation.

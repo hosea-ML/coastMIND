@@ -137,3 +137,96 @@ class SelfAttention(nn.Module):
             return context, attention_weights
 
         return context
+
+class MultiHeadSelfAttention(nn.Module):
+    """Multi-head causal self-attention."""
+
+    def __init__(
+        self,
+        embedding_dim: int,
+        num_heads: int,
+    ):
+        super().__init__()
+
+        if embedding_dim <= 0:
+            raise ValueError("embedding_dim must be greater than zero.")
+
+        if num_heads <= 0:
+            raise ValueError("num_heads must be greater than zero.")
+
+        if embedding_dim % num_heads != 0:
+            raise ValueError(
+                "embedding_dim must be divisible by num_heads."
+            )
+
+        self.embedding_dim = embedding_dim
+        self.num_heads = num_heads
+        self.head_dim = embedding_dim // num_heads
+
+        self.query = nn.Linear(embedding_dim, embedding_dim)
+        self.key = nn.Linear(embedding_dim, embedding_dim)
+        self.value = nn.Linear(embedding_dim, embedding_dim)
+
+        self.output_projection = nn.Linear(
+            embedding_dim,
+            embedding_dim,
+        )
+
+        self.causal_mask = CausalMask()
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        return_attention: bool = False,
+    ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
+        batch_size, sequence_length, _ = x.shape
+
+        # 1. Project the input into queries, keys, and values.
+        queries = self.query(x)
+        keys = self.key(x)
+        values = self.value(x)
+
+        # 2. Split each projection into multiple heads.
+        queries = queries.reshape(
+            batch_size, sequence_length, self.num_heads, self.head_dim
+        ).transpose(1, 2)
+
+        keys = keys.reshape(
+            batch_size, sequence_length, self.num_heads, self.head_dim
+        ).transpose(1, 2)
+
+        values = values.reshape(
+            batch_size, sequence_length, self.num_heads, self.head_dim
+        ).transpose(1, 2)
+
+        # 3. Calculate scaled attention scores.
+        scores = torch.matmul(queries, keys.transpose(-2, -1))
+        scores = scores / math.sqrt(self.head_dim)
+
+        # 4. Prevent each token from attending to future tokens.
+        mask = self.causal_mask(
+            sequence_length=sequence_length,
+            device=x.device,
+        )
+
+        scores = scores.masked_fill(~mask, float("-inf"))
+
+        # 5. Convert scores into attention probabilities.
+        attention_weights = torch.softmax(scores, dim=-1)
+
+        # 6. Combine value vectors using attention probabilities.
+        context = torch.matmul(attention_weights, values)
+
+        # 7. Recombine the attention heads.
+        context = context.transpose(1, 2).contiguous()
+        context = context.reshape(
+            batch_size, sequence_length, self.embedding_dim
+        )
+
+        # 8. Project the combined representation.
+        output = self.output_projection(context)
+
+        if return_attention:
+            return output, attention_weights
+
+        return output
